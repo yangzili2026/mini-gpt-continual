@@ -1,0 +1,58 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+cmake-build-*/
+out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Note: *.bin checkpoints are intentionally NOT ignored (model checkpoints are kept).
+
+# ---- 新增：超大语料与原始数据（提供来源链接，不入库）----
+# 语料 bin（>100MB 超 GitHub 限制；见 README 数据来源节）
+all_corpus*.bin
+honglou_small.bin
+skypile_00000.parquet
+# 大型文本语料（原始文本可从公开来源重新获取）
+cpp/zh_modern.txt
+cpp/skypile_cn.txt
+cpp/train_text.txt
