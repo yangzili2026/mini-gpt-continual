@@ -56,3 +56,6 @@ skypile_00000.parquet
 cpp/zh_modern.txt
 cpp/skypile_cn.txt
 cpp/train_text.txt
+# 维基语料（体积大，来源见 README）
+zhwiki_dataset.jsonl
+cpp/zhwiki_cn.txt
