@@ -59,3 +59,4 @@ cpp/train_text.txt
 # 维基语料（体积大，来源见 README）
 zhwiki_dataset.jsonl
 cpp/zhwiki_cn.txt
+cpp/zhwiki_cn_simplified.txt
