@@ -35,6 +35,8 @@ const int NH = D / H; // 每个头的维度
 const int L = 4;      // 层数
 const int F = 512;    // 前馈网络中间层（4×128，与论文一致）
 const int B = 16;     // 批量
+// 【记】G0 预训练总步数：分段续训时学习率按这个总目标退火（6成步数后 0.001 -> 0.0003）
+const int TOTAL_STEPS = 12000;
 const int BT = B * T;
 const float SQRT_NH = sqrtf((float)NH);
 
@@ -532,17 +534,29 @@ int main(int argc, char** argv) {
     int steps = argc > 1 ? atoi(argv[1]) : 100;
     const char* loadfile = argc > 2 ? argv[2] : nullptr;
     const char* savefile = argc > 3 ? argv[3] : "gpt4.bin";
+    // 【记】第5参数 = 全局步数偏移：分段续训时传已累计步数，学习率退火按全局步数走
+    int step0 = argc > 5 ? atoi(argv[5]) : 0;
 
-    ifstream fin("all_corpus.bin", ios::binary);
-    vector<unsigned char> data((istreambuf_iterator<char>(fin)), istreambuf_iterator<char>());
-    fin.close();
+    // 【记】论文 G0 预训练专用语料：维基简体+FineWeb英文+三体（无 T1/T2/T3 任务域，防污染）
+    // 【易错】 fread 一次性整块读，比 istreambuf_iterator 快约 10 倍（783MB 只需约 8 秒）
+    FILE* fp = fopen("g0_corpus.bin", "rb");
+    if (!fp) { cout << "打不开 g0_corpus.bin！请先运行 build_corpus_g0.py" << endl; return 1; }
+    fseek(fp, 0, SEEK_END);
+    long fsize = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    vector<unsigned char> data(fsize);
+    size_t got = fread(data.data(), 1, fsize, fp);
+    fclose(fp);
+    if (got != (size_t)fsize) { cout << "语料没读完整！" << endl; return 1; }
     if (data.size() < 1000000) {   // 【易错】文件打不开时给个明白话，不要神秘崩溃
-        cout << "打不开 all_corpus.bin！请在 cpp 目录下运行" << endl;
+        cout << "打不开 g0_corpus.bin！请先运行 build_corpus_g0.py" << endl;
         return 1;
     }
-    cout << "语料: all_corpus.bin " << data.size() / 1000000 << " MB" << endl;
+    cout << "语料: g0_corpus.bin " << data.size() / 1000000 << " MB" << endl;
 
-    mt19937 rng(42);
+    // 【易错】种子必须带全局步数偏移！否则每段续训都从头抽同样的批次
+    //        （上一版就栽在这：200个窗口被重复看了十几遍，模型背题）
+    mt19937 rng(42 + step0);
     GPT g;
     initGPT(g, rng);
     cout << "参数量: " << g.nparams() / 1000 << " K" << endl;
@@ -634,12 +648,13 @@ int main(int argc, char** argv) {
 
         float loss = forward(g, batch.data());
         backward(g, batch.data());
-        float lr = step < steps * 0.6 ? 0.001f : 0.0003f;   // 先大后小
-        applyAdam(g, adam, step, lr);
+        int gstep = step0 + step;   // 【记】全局步数：学习率退火和 Adam 都按它算
+        float lr = gstep < TOTAL_STEPS * 0.6 ? 0.001f : 0.0003f;   // 先大后小
+        applyAdam(g, adam, gstep, lr);
 
         runLoss += loss; runN++;
         if (step % 20 == 0) {
-            cout << "step " << step << "  平均损失 = " << fixed << setprecision(3)
+            cout << "step " << gstep << "  平均损失 = " << fixed << setprecision(3)
                  << runLoss / runN << "  (随机 5.545)  每20步用时 "
                  << time(nullptr) - t0 << "s" << endl;
             runLoss = 0; runN = 0; t0 = time(nullptr);
