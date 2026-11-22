@@ -1,0 +1,2 @@
+EVAL arm=C seed=2 after=D2 T1=2.1255 T2=2.1490
+EVAL arm=C seed=2 after=D3 T1=2.2890 T2=2.1270 T3=0.2182
