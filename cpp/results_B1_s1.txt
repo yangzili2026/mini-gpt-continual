@@ -1,0 +1,2 @@
+EVAL arm=B1 seed=1 after=D1 T1=2.0939
+EVAL arm=B1 seed=1 after=D2 T1=2.5402 T2=2.2368

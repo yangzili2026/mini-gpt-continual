@@ -60,3 +60,15 @@ cpp/train_text.txt
 zhwiki_dataset.jsonl
 cpp/zhwiki_cn.txt
 cpp/zhwiki_cn_simplified.txt
+
+# Large generated corpora & task splits (regenerable via prep_domains.py / build_corpus_g0.py)
+cpp/g0_corpus.bin
+cpp/t1_train.bin
+cpp/t1_test.bin
+cpp/t2_train.bin
+cpp/t2_test.bin
+cpp/t3_train.bin
+cpp/t3_test.bin
+cpp/zhwiki*.txt
+cpp/zh_modern.txt
+*.part
