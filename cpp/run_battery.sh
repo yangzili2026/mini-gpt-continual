@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 持续学习实验电池全自动驱动器
 # 顺序：先收尾 B1 s1（正在跑），然后 B1 s2/s3，再 C/B0/B2/B3，最后 D。
-# 每个 run 反复 resume 直到 results 文件出现"全部完成"行。
+# 每个 run 反复 resume 直到 results 文件出现 after=D3 记录（exe 的完成提示打在 stdout，不进 results）。
 # 任何中途崩溃（休眠 0x40010004 等）都会由外层 while 自动重跑，state 文件保证断点续训。
 set -u
 cd "$(dirname "$0")"
@@ -10,7 +10,7 @@ run_arm () {
     local arm="$1" seed="$2"
     local rf="results_${arm}_s${seed}.txt"
     while true; do
-        if [ -f "$rf" ] && grep -q "全部完成" "$rf"; then
+        if [ -f "$rf" ] && grep -q "after=D3" "$rf"; then
             echo "[battery] $arm s$seed DONE"
             return 0
         fi
